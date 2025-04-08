@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 1. Lancez l'application :
 ```bash
-streamlit run app.py
+streamlit run application.py
 ```
 
 2. Dans l'interface :
