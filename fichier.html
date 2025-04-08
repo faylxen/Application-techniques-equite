@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualisation des Techniques d'Équité Algorithmique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .transition-all {
+            transition: all 0.3s ease;
+        }
+        .tab-active {
+            border-bottom: 3px solid #000DFF;
+            font-weight: 600;
+            color: #000DFF;
+        }
+        .tech-card {
+            border-left: 4px solid;
+            transition: all 0.3s;
+        }
+        .metric-diagram {
+            position: relative;
+            height: 200px;
+            margin: 20px 0;
+        }
+        .group-rect {
+            position: absolute;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .arrow {
+            position: absolute;
+            height: 2px;
+            background: #333;
+        }
+        .arrow:after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid #333;
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+        .highlight {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 13, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 13, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 13, 255, 0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2">Visualisation des Techniques d'Équité</h1>
+                    <p class="text-lg opacity-90">Comprendre comment fonctionnent les différentes approches d'équité algorithmique</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Introduction aux Techniques d'Équité</h2>
+                <p class="text-gray-600 mb-6">
+                    Les techniques d'équité algorithmique visent à réduire les biais dans les modèles d'apprentissage automatique. 
+                    Chaque approche agit à un niveau différent du pipeline de modélisation et cible des types spécifiques de biais.
+                </p>
+                
+                <div class="flex border-b mb-6">
+                    <button id="tech-tab" class="px-4 py-2 mr-2 tab-active">Techniques</button>
+                    <button id="metrics-tab" class="px-4 py-2 mr-2">Métriques</button>
+                </div>
+                
+                <!-- Section Techniques -->
+                <div id="techniques-section">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="tech-card bg-blue-50 border-blue-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-blue-800 text-lg mb-2">
+                                <i class="fas fa-balance-scale mr-2"></i>Pré-traitement des Données
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Modifie les données d'entraînement pour réduire les biais avant la construction du modèle.
+                            </p>
+                            <div class="metric-diagram" id="preprocessing-diagram"></div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li><i class="fas fa-check-circle text-blue-500 mr-2"></i>Rééchantillonnage des groupes sous-représentés</li>
+                                <li><i class="fas fa-check-circle text-blue-500 mr-2"></i>Rééquilibrage des poids des exemples</li>
+                                <li><i class="fas fa-check-circle text-blue-500 mr-2"></i>Transformation des caractéristiques pour masquer les attributs sensibles</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="tech-card bg-purple-50 border-purple-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-purple-800 text-lg mb-2">
+                                <i class="fas fa-cogs mr-2"></i>Modification du Modèle
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Intègre des contraintes d'équité directement dans l'algorithme d'apprentissage.
+                            </p>
+                            <div class="metric-diagram" id="inprocessing-diagram"></div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li><i class="fas fa-check-circle text-purple-500 mr-2"></i>Fonctions de coût avec pénalités pour les biais</li>
+                                <li><i class="fas fa-check-circle text-purple-500 mr-2"></i>Apprentissage adversaire pour masquer les attributs sensibles</li>
+                                <li><i class="fas fa-check-circle text-purple-500 mr-2"></i>Contraintes d'équité pendant l'optimisation</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="tech-card bg-green-50 border-green-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-green-800 text-lg mb-2">
+                                <i class="fas fa-sliders-h mr-2"></i>Post-traitement
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Ajuste les prédictions du modèle après son entraînement pour améliorer l'équité.
+                            </p>
+                            <div class="metric-diagram" id="postprocessing-diagram"></div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li><i class="fas fa-check-circle text-green-500 mr-2"></i>Ajustement des seuils de décision par groupe</li>
+                                <li><i class="fas fa-check-circle text-green-500 mr-2"></i>Reclassement des prédictions pour satisfaire des contraintes d'équité</li>
+                                <li><i class="fas fa-check-circle text-green-500 mr-2"></i>Optimisation des prédictions pour des métriques spécifiques</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="tech-card bg-yellow-50 border-yellow-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-yellow-800 text-lg mb-2">
+                                <i class="fas fa-random mr-2"></i>Approches Hybrides
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Combine plusieurs techniques pour obtenir de meilleurs résultats.
+                            </p>
+                            <div class="metric-diagram" id="hybrid-diagram"></div>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li><i class="fas fa-check-circle text-yellow-500 mr-2"></i>Pré-traitement + modification du modèle</li>
+                                <li><i class="fas fa-check-circle text-yellow-500 mr-2"></i>Modification du modèle + post-traitement</li>
+                                <li><i class="fas fa-check-circle text-yellow-500 mr-2"></i>Combinaison des trois approches</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Métriques -->
+                <div id="metrics-section" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="tech-card bg-red-50 border-red-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-red-800 text-lg mb-2">
+                                <i class="fas fa-equals mr-2"></i>Parité Démographique
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Les prédictions positives sont également réparties entre les groupes.
+                            </p>
+                            <div class="metric-diagram" id="demographic-parity-diagram"></div>
+                            <div class="text-sm text-gray-600">
+                                <p class="font-medium">Formule:</p>
+                                <p class="bg-gray-100 p-2 rounded mt-1">P(Ŷ=1|A=a) = P(Ŷ=1|A=b)</p>
+                                <p class="mt-2">Où Ŷ est la prédiction et A est l'attribut sensible.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card bg-indigo-50 border-indigo-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-indigo-800 text-lg mb-2">
+                                <i class="fas fa-bullseye mr-2"></i>Égalité des Chances
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Les taux de vrais positifs sont égaux entre les groupes.
+                            </p>
+                            <div class="metric-diagram" id="equal-opportunity-diagram"></div>
+                            <div class="text-sm text-gray-600">
+                                <p class="font-medium">Formule:</p>
+                                <p class="bg-gray-100 p-2 rounded mt-1">P(Ŷ=1|A=a,Y=1) = P(Ŷ=1|A=b,Y=1)</p>
+                                <p class="mt-2">Où Y est la vraie valeur et Ŷ la prédiction.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="tech-card bg-pink-50 border-pink-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-pink-800 text-lg mb-2">
+                                <i class="fas fa-exchange-alt mr-2"></i>Égalité des Taux d'Erreurs
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Les taux de vrais positifs et faux positifs sont égaux entre les groupes.
+                            </p>
+                            <div class="metric-diagram" id="equalized-odds-diagram"></div>
+                            <div class="text-sm text-gray-600">
+                                <p class="font-medium">Formule:</p>
+                                <p class="bg-gray-100 p-2 rounded mt-1">
+                                    P(Ŷ=1|A=a,Y=y) = P(Ŷ=1|A=b,Y=y) pour y ∈ {0,1}
+                                </p>
+                                <p class="mt-2">Plus strict que l'égalité des chances.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card bg-teal-50 border-teal-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-teal-800 text-lg mb-2">
+                                <i class="fas fa-percentage mr-2"></i>Équilibre des Taux de Précision
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                La précision (vrais positifs / prédictions positives) est égale entre les groupes.
+                            </p>
+                            <div class="metric-diagram" id="predictive-parity-diagram"></div>
+                            <div class="text-sm text-gray-600">
+                                <p class="font-medium">Formule:</p>
+                                <p class="bg-gray-100 p-2 rounded mt-1">P(Y=1|A=a,Ŷ=1) = P(Y=1|A=b,Ŷ=1)</p>
+                                <p class="mt-2">Aussi appelée "parité des valeurs prédictives positives".</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Comparaison des Techniques et Métriques</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Métrique</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Pré-traitement</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Modification Modèle</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Post-traitement</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Avantages</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inconvénients</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Parité Démographique</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Bon</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Excellent</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Excellent</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Simple à comprendre et à implémenter</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Peut réduire la précision globale</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Égalité des Chances</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Bon</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Excellent</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Bon</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Préserve les performances pour la classe positive</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Nécessite des labels vérité terrain</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Égalité des Taux d'Erreurs</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-yellow-500"></i> Moyen</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Excellent</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Bon</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Contrôle à la fois les faux positifs et faux négatifs</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Difficile à satisfaire complètement</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Équilibre des Taux de Précision</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-times text-red-500"></i> Faible</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-yellow-500"></i> Moyen</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500"><i class="fas fa-check text-green-500"></i> Bon</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Utile quand la précision est critique</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Peut créer d'autres disparités</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Simulateur d'Équité</h2>
+                <p class="text-gray-600 mb-6">
+                    Explorez comment différentes techniques affectent les métriques d'équité sur un exemple simplifié.
+                </p>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-xl p-6 border border-gray-200">
+                            <h3 class="text-xl font-semibold text-gray-700 mb-4">Visualisation des Résultats</h3>
+                            <div class="flex justify-center">
+                                <canvas id="fairnessSimulationChart" height="400"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-6 border border-gray-200">
+                        <h3 class="text-xl font-semibold text-gray-700 mb-4">Paramètres</h3>
+                        
+                        <div class="space-y-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Technique d'Équité</label>
+                                <select id="simulation-technique" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    <option value="none">Aucune correction</option>
+                                    <option value="preprocessing">Pré-traitement</option>
+                                    <option value="inprocessing">Modification du modèle</option>
+                                    <option value="postprocessing">Post-traitement</option>
+                                    <option value="hybrid">Approche hybride</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Métrique Cible</label>
+                                <select id="simulation-metric" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md">
+                                    <option value="demographic">Parité démographique</option>
+                                    <option value="opportunity">Égalité des chances</option>
+                                    <option value="equalized">Égalité des taux d'erreurs</option>
+                                    <option value="predictive">Équilibre des taux de précision</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Niveau de Biais Initial</label>
+                                <input type="range" id="bias-level" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                <div class="flex justify-between text-xs text-gray-500">
+                                    <span>Faible</span>
+                                    <span>Moyen</span>
+                                    <span>Fort</span>
+                                </div>
+                            </div>
+                            
+                            <button id="run-simulation" class="w-full gradient-bg text-white py-3 rounded-lg font-medium hover:opacity-90 transition-all">
+                                <i class="fas fa-play mr-2"></i>Lancer la Simulation
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="text-center text-gray-400">
+                <p>© 2023 Visualisation des Techniques d'Équité Algorithmique. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Gestion des onglets
+        document.getElementById('tech-tab').addEventListener('click', function() {
+            this.classList.add('tab-active');
+            document.getElementById('metrics-tab').classList.remove('tab-active');
+            document.getElementById('techniques-section').classList.remove('hidden');
+            document.getElementById('metrics-section').classList.add('hidden');
+        });
+        
+        document.getElementById('metrics-tab').addEventListener('click', function() {
+            this.classList.add('tab-active');
+            document.getElementById('tech-tab').classList.remove('tab-active');
+            document.getElementById('metrics-section').classList.remove('hidden');
+            document.getElementById('techniques-section').classList.add('hidden');
+        });
+
+        // Diagrammes pour les techniques
+        function drawPreprocessingDiagram() {
+            const container = document.getElementById('preprocessing-diagram');
+            container.innerHTML = '';
+            
+            // Données
+            const dataRect = document.createElement('div');
+            dataRect.className = 'group-rect bg-blue-500';
+            dataRect.style.width = '120px';
+            dataRect.style.height = '60px';
+            dataRect.style.left = '20px';
+            dataRect.style.top = '20px';
+            dataRect.textContent = 'Données';
+            container.appendChild(dataRect);
+            
+            // Flèche
+            const arrow1 = document.createElement('div');
+            arrow1.className = 'arrow';
+            arrow1.style.width = '60px';
+            arrow1.style.left = '140px';
+            arrow1.style.top = '50px';
+            container.appendChild(arrow1);
+            
+            // Traitement
+            const processRect = document.createElement('div');
+            processRect.className = 'group-rect bg-blue-600';
+            processRect.style.width = '120px';
+            processRect.style.height = '60px';
+            processRect.style.left = '200px';
+            processRect.style.top = '20px';
+            processRect.textContent = 'Rééquilibrage';
+            container.appendChild(processRect);
+            
+            // Flèche
+            const arrow2 = document.createElement('div');
+            arrow2.className = 'arrow';
+            arrow2.style.width = '60px';
+            arrow2.style.left = '320px';
+            arrow2.style.top = '50px';
+            container.appendChild(arrow2);
+            
+            // Modèle
+            const modelRect = document.createElement('div');
+            modelRect.className = 'group-rect bg-blue-700';
+            modelRect.style.width = '120px';
+            modelRect.style.height = '60px';
+            modelRect.style.left = '380px';
+            modelRect.style.top = '20px';
+            modelRect.textContent = 'Modèle';
+            container.appendChild(modelRect);
+            
+            // Mettre en avant le processus de rééquilibrage
+            processRect.classList.add('highlight');
+        }
+
+        function drawInprocessingDiagram() {
+            const container = document.getElementById('inprocessing-diagram');
+            container.innerHTML = '';
+            
+            // Données
+            const dataRect = document.createElement('div');
+            dataRect.className = 'group-rect bg-purple-500';
+            dataRect.style.width = '120px';
+            dataRect.style.height = '60px';
+            dataRect.style.left = '20px';
+            dataRect.style.top = '20px';
+            dataRect.textContent = 'Données';
+            container.appendChild(dataRect);
+            
+            // Flèche
+            const arrow1 = document.createElement('div');
+            arrow1.className = 'arrow';
+            arrow1.style.width = '60px';
+            arrow1.style.left = '140px';
+            arrow1.style.top = '50px';
+            container.appendChild(arrow1);
+            
+            // Modèle avec contrainte
+            const modelRect = document.createElement('div');
+            modelRect.className = 'group-rect bg-purple-700';
+            modelRect.style.width = '120px';
+            modelRect.style.height = '60px';
+            modelRect.style.left = '200px';
+            modelRect.style.top = '20px';
+            modelRect.textContent = 'Modèle';
+            container.appendChild(modelRect);
+            
+            // Contrainte
+            const constraintRect = document.createElement('div');
+            constraintRect.className = 'group-rect bg-purple-600';
+            constraintRect.style.width = '100px';
+            constraintRect.style.height = '40px';
+            constraintRect.style.left = '240px';
+            constraintRect.style.top = '90px';
+            constraintRect.textContent = 'Contrainte';
+            container.appendChild(constraintRect);
+            
+            // Ligne pointillée vers le modèle
+            const dottedLine = document.createElement('div');
+            dottedLine.style.position = 'absolute';
+            dottedLine.style.borderLeft = '2px dashed #6B46C1';
+            dottedLine.style.height = '30px';
+            dottedLine.style.left = '290px';
+            dottedLine.style.top = '60px';
+            container.appendChild(dottedLine);
+            
+            // Mettre en avant la contrainte
+            constraintRect.classList.add('highlight');
+        }
+
+        function drawPostprocessingDiagram() {
+            const container = document.getElementById('postprocessing-diagram');
+            container.innerHTML = '';
+            
+            // Modèle
+            const modelRect = document.createElement('div');
+            modelRect.className = 'group-rect bg-green-700';
+            modelRect.style.width = '120px';
+            modelRect.style.height = '60px';
+            modelRect.style.left = '20px';
+            modelRect.style.top = '20px';
+            modelRect.textContent = 'Modèle';
+            container.appendChild(modelRect);
+            
+            // Flèche
+            const arrow1 = document.createElement('div');
+            arrow1.className = 'arrow';
+            arrow1.style.width = '60px';
+            arrow1.style.left = '140px';
+            arrow1.style.top = '50px';
+            container.appendChild(arrow1);
+            
+            // Prédictions brutes
+            const predRect = document.createElement('div');
+            predRect.className = 'group-rect bg-green-600';
+            predRect.style.width = '120px';
+            predRect.style.height = '60px';
+            predRect.style.left = '200px';
+            predRect.style.top = '20px';
+            predRect.textContent = 'Prédictions';
+            container.appendChild(predRect);
+            
+            // Flèche
+            const arrow2 = document.createElement('div');
+            arrow2.className = 'arrow';
+            arrow2.style.width = '60px';
+            arrow2.style.left = '320px';
+            arrow2.style.top = '50px';
+            container.appendChild(arrow2);
+            
+            // Ajustement
+            const adjustRect = document.createElement('div');
+            adjustRect.className = 'group-rect bg-green-500';
+            adjustRect.style.width = '120px';
+            adjustRect.style.height = '60px';
+            adjustRect.style.left = '380px';
+            adjustRect.style.top = '20px';
+            adjustRect.textContent = 'Ajustement';
+            container.appendChild(adjustRect);
+            
+            // Mettre en avant l'ajustement
+            adjustRect.classList.add('highlight');
+        }
+
+        function drawHybridDiagram() {
+            const container = document.getElementById('hybrid-diagram');
+            container.innerHTML = '';
+            
+            // Données
+            const dataRect = document.createElement('div');
+            dataRect.className = 'group-rect bg-yellow-500';
+            dataRect.style.width = '100px';
+            dataRect.style.height = '50px';
+            dataRect.style.left = '20px';
+            dataRect.style.top = '30px';
+            dataRect.textContent = 'Données';
+            container.appendChild(dataRect);
+            
+            // Flèche
+            const arrow1 = document.createElement('div');
+            arrow1.className = 'arrow';
+            arrow1.style.width = '40px';
+            arrow1.style.left = '120px';
+            arrow1.style.top = '55px';
+            container.appendChild(arrow1);
+            
+            // Rééquilibrage
+            const balanceRect = document.createElement('div');
+            balanceRect.className = 'group-rect bg-yellow-600';
+            balanceRect.style.width = '100px';
+            balanceRect.style.height = '50px';
+            balanceRect.style.left = '160px';
+            balanceRect.style.top = '30px';
+            balanceRect.textContent = 'Rééquilibrage';
+            container.appendChild(balanceRect);
+            
+            // Flèche
+            const arrow2 = document.createElement('div');
+            arrow2.className = 'arrow';
+            arrow2.style.width = '40px';
+            arrow2.style.left = '260px';
+            arrow2.style.top = '55px';
+            container.appendChild(arrow2);
+            
+            // Modèle avec contrainte
+            const modelRect = document.createElement('div');
+            modelRect.className = 'group-rect bg-yellow-700';
+            modelRect.style.width = '100px';
+            modelRect.style.height = '50px';
+            modelRect.style.left = '300px';
+            modelRect.style.top = '30px';
+            modelRect.textContent = 'Modèle';
+            container.appendChild(modelRect);
+            
+            // Contrainte
+            const constraintRect = document.createElement('div');
+            constraintRect.className = 'group-rect bg-yellow-600';
+            constraintRect.style.width = '80px';
+            constraintRect.style.height = '40px';
+            constraintRect.style.left = '330px';
+            constraintRect.style.top = '90px';
+            constraintRect.textContent = 'Contrainte';
+            container.appendChild(constraintRect);
+            
+            // Ligne pointillée vers le modèle
+            const dottedLine = document.createElement('div');
+            dottedLine.style.position = 'absolute';
+            dottedLine.style.borderLeft = '2px dashed #D69E2E';
+            dottedLine.style.height = '20px';
+            dottedLine.style.left = '350px';
+            dottedLine.style.top = '80px';
+            container.appendChild(dottedLine);
+            
+            // Flèche
+            const arrow3 = document.createElement('div');
+            arrow3.className = 'arrow';
+            arrow3.style.width = '40px';
+            arrow3.style.left = '400px';
+            arrow3.style.top = '55px';
+            container.appendChild(arrow3);
+            
+            // Ajustement
+            const adjustRect = document.createElement('div');
+            adjustRect.className = 'group-rect bg-yellow-500';
+            adjustRect.style.width = '100px';
+            adjustRect.style.height = '50px';
+            adjustRect.style.left = '440px';
+            adjustRect.style.top = '30px';
+            adjustRect.textContent = 'Ajustement';
+            container.appendChild(adjustRect);
+            
+            // Mettre en avant l'ensemble
+            balanceRect.classList.add('highlight');
+            modelRect.classList.add('highlight');
+            adjustRect.classList.add('highlight');
+        }
+
+        // Diagrammes pour les métriques
+        function drawDemographicParityDiagram() {
+            const container = document.getElementById('demographic-parity-diagram');
+            container.innerHTML = '';
+            
+            // Groupe A
+            const groupA = document.createElement('div');
+            groupA.className = 'group-rect bg-red-500';
+            groupA.style.width = '120px';
+            groupA.style.height = '40px';
+            groupA.style.left = '50px';
+            groupA.style.top = '30px';
+            groupA.textContent = 'Groupe A';
+            container.appendChild(groupA);
+            
+            // Prédictions positives A
+            const predA = document.createElement('div');
+            predA.className = 'group-rect bg-red-600';
+            predA.style.width = '80px';
+            predA.style.height = '30px';
+            predA.style.left = '60px';
+            predA.style.top = '80px';
+            predA.textContent = '40%';
+            container.appendChild(predA);
+            
+            // Groupe B
+            const groupB = document.createElement('div');
+            groupB.className = 'group-rect bg-red-500';
+            groupB.style.width = '120px';
+            groupB.style.height = '40px';
+            groupB.style.left = '250px';
+            groupB.style.top = '30px';
+            groupB.textContent = 'Groupe B';
+            container.appendChild(groupB);
+            
+            // Prédictions positives B (même taille que A)
+            const predB = document.createElement('div');
+            predB.className = 'group-rect bg-red-600';
+            predB.style.width = '80px';
+            predB.style.height = '30px';
+            predB.style.left = '260px';
+            predB.style.top = '80px';
+            predB.textContent = '40%';
+            container.appendChild(predB);
+            
+            // Texte explicatif
+            const text = document.createElement('div');
+            text.className = 'absolute text-xs text-gray-600';
+            text.style.left = '150px';
+            text.style.top = '120px';
+            text.textContent = 'Même proportion de prédictions positives';
+            container.appendChild(text);
+            
+            // Mettre en avant les prédictions
+            predA.classList.add('highlight');
+            predB.classList.add('highlight');
+        }
+
+        function drawEqualOpportunityDiagram() {
+            const container = document.getElementById('equal-opportunity-diagram');
+            container.innerHTML = '';
+            
+            // Groupe A Positifs
+            const groupAPos = document.createElement('div');
+            groupAPos.className = 'group-rect bg-indigo-500';
+            groupAPos.style.width = '100px';
+            groupAPos.style.height = '40px';
+            groupAPos.style.left = '30px';
+            groupAPos.style.top = '30px';
+            groupAPos.textContent = 'A Positifs';
+            container.appendChild(groupAPos);
+            
+            // Vrais positifs A
+            const tpA = document.createElement('div');
+            tpA.className = 'group-rect bg-indigo-600';
+            tpA.style.width = '70px';
+            tpA.style.height = '30px';
+            tpA.style.left = '40px';
+            tpA.style.top = '80px';
+            tpA.textContent = '70%';
+            container.appendChild(tpA);
+            
+            // Groupe B Positifs
+            const groupBPos = document.createElement('div');
+            groupBPos.className = 'group-rect bg-indigo-500';
+            groupBPos.style.width = '100px';
+            groupBPos.style.height = '40px';
+            groupBPos.style.left = '200px';
+            groupBPos.style.top = '30px';
+            groupBPos.textContent = 'B Positifs';
+            container.appendChild(groupBPos);
+            
+            // Vrais positifs B (même taille que A)
+            const tpB = document.createElement('div');
+            tpB.className = 'group-rect bg-indigo-600';
+            tpB.style.width = '70px';
+            tpB.style.height = '30px';
+            tpB.style.left = '210px';
+            tpB.style.top = '80px';
+            tpB.textContent = '70%';
+            container.appendChild(tpB);
+            
+            // Texte explicatif
+            const text = document.createElement('div');
+            text.className = 'absolute text-xs text-gray-600';
+            text.style.left = '120px';
+            text.style.top = '120px';
+            text.textContent = 'Même taux de vrais positifs';
+            container.appendChild(text);
+            
+            // Mettre en avant les vrais positifs
+            tpA.classList.add('highlight');
+            tpB.classList.add('highlight');
+        }
+
+        function drawEqualizedOddsDiagram() {
+            const container = document.getElementById('equalized-odds-diagram');
+            container.innerHTML = '';
+            
+            // Groupe A
+            const groupA = document.createElement('div');
+            groupA.className = 'group-rect bg-pink-500';
+            groupA.style.width = '100px';
+            groupA.style.height = '40px';
+            groupA.style.left = '30px';
+            groupA.style.top = '20px';
+            groupA.textContent = 'Groupe A';
+            container.appendChild(groupA);
+            
+            // Vrais positifs A
+            const tpA = document.createElement('div');
+            tpA.className = 'group-rect bg-pink-600';
+            tpA.style.width = '60px';
+            tpA.style.height = '25px';
+            tpA.style.left = '40px';
+            tpA.style.top = '70px';
+            tpA.textContent = '70%';
+            container.appendChild(tpA);
+            
+            // Faux positifs A
+            const fpA = document.createElement('div');
+            fpA.className = 'group-rect bg-pink-400';
+            fpA.style.width = '60px';
+            fpA.style.height = '25px';
+            fpA.style.left = '40px';
+            fpA.style.top = '105px';
+            fpA.textContent = '20%';
+            container.appendChild(fpA);
+            
+            // Groupe B
+            const groupB = document.createElement('div');
+            groupB.className = 'group-rect bg-pink-500';
+            groupB.style.width = '100px';
+            groupB.style.height = '40px';
+            groupB.style.left = '200px';
+            groupB.style.top = '20px';
+            groupB.textContent = 'Groupe B';
+            container.appendChild(groupB);
+            
+            // Vrais positifs B (même taille que A)
+            const tpB = document.createElement('div');
+            tpB.className = 'group-rect bg-pink-600';
+            tpB.style.width = '60px';
+            tpB.style.height = '25px';
+            tpB.style.left = '210px';
+            tpB.style.top = '70px';
+            tpB.textContent = '70%';
+            container.appendChild(tpB);
+            
+            // Faux positifs B (même taille que A)
+            const fpB = document.createElement('div');
+            fpB.className = 'group-rect bg-pink-400';
+            fpB.style.width = '60px';
+            fpB.style.height = '25px';
+            fpB.style.left = '210px';
+            fpB.style.top = '105px';
+            fpB.textContent = '20%';
+            container.appendChild(fpB);
+            
+            // Texte explicatif
+            const text = document.createElement('div');
+            text.className = 'absolute text-xs text-gray-600';
+            text.style.left = '120px';
+            text.style.top = '140px';
+            text.textContent = 'Mêmes taux de vrais et faux positifs';
+            container.appendChild(text);
+            
+            // Mettre en avant les taux
+            tpA.classList.add('highlight');
+            tpB.classList.add('highlight');
+            fpA.classList.add('highlight');
+            fpB.classList.add('highlight');
+        }
+
+        function drawPredictiveParityDiagram() {
+            const container = document.getElementById('predictive-parity-diagram');
+            container.innerHTML = '';
+            
+            // Prédictions positives A
+            const predA = document.createElement('div');
+            predA.className = 'group-rect bg-teal-500';
+            predA.style.width = '100px';
+            predA.style.height = '40px';
+            predA.style.left = '30px';
+            predA.style.top = '30px';
+            predA.textContent = 'Préd. A';
+            container.appendChild(predA);
+            
+            // Vrais positifs A
+            const tpA = document.createElement('div');
+            tpA.className = 'group-rect bg-teal-600';
+            tpA.style.width = '70px';
+            tpA.style.height = '30px';
+            tpA.style.left = '40px';
+            tpA.style.top = '80px';
+            tpA.textContent = '80%';
+            container.appendChild(tpA);
+            
+            // Prédictions positives B
+            const predB = document.createElement('div');
+            predB.className = 'group-rect bg-teal-500';
+            predB.style.width = '100px';
+            predB.style.height = '40px';
+            predB.style.left = '200px';
+            predB.style.top = '30px';
+            predB.textContent = 'Préd. B';
+            container.appendChild(predB);
+            
+            // Vrais positifs B (même taille que A)
+            const tpB = document.createElement('div');
+            tpB.className = 'group-rect bg-teal-600';
+            tpB.style.width = '70px';
+            tpB.style.height = '30px';
+            tpB.style.left = '210px';
+            tpB.style.top = '80px';
+            tpB.textContent = '80%';
+            container.appendChild(tpB);
+            
+            // Texte explicatif
+            const text = document.createElement('div');
+            text.className = 'absolute text-xs text-gray-600';
+            text.style.left = '120px';
+            text.style.top = '120px';
+            text.textContent = 'Même précision parmi les prédictions positives';
+            container.appendChild(text);
+            
+            // Mettre en avant les vrais positifs
+            tpA.classList.add('highlight');
+            tpB.classList.add('highlight');
+        }
+
+        // Simulation Chart
+        let simulationChart = null;
+
+        function initSimulationChart() {
+            const ctx = document.getElementById('fairnessSimulationChart').getContext('2d');
+            
+            simulationChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Parité Démographique', 'Égalité des Chances', 'Égalité des Taux', 'Précision'],
+                    datasets: [
+                        {
+                            label: 'Groupe Majoritaire',
+                            data: [0.35, 0.65, 0.25, 0.85],
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Groupe Minoritaire',
+                            data: [0.15, 0.35, 0.45, 0.65],
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Métriques par Groupe (Aucune Correction)',
+                            font: {
+                                size: 16
+                            }
+                        },
+                        legend: {
+                            position: 'top'
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateSimulationChart(technique, metric, biasLevel) {
+            // Convertir le biais en facteur (0-1)
+            const biasFactor = biasLevel / 100;
+            
+            // Valeurs de base avec biais
+            let majorityValues, minorityValues;
+            
+            if (technique === 'none') {
+                majorityValues = [
+                    0.35 + (0.2 * biasFactor),  // Parité démographique
+                    0.65 + (0.15 * biasFactor),  // Égalité des chances
+                    0.25 + (0.1 * biasFactor),   // Égalité des taux
+                    0.85 + (0.1 * biasFactor)    // Précision
+                ];
+                
+                minorityValues = [
+                    0.15 - (0.1 * biasFactor),
+                    0.35 - (0.15 * biasFactor),
+                    0.45 - (0.1 * biasFactor),
+                    0.65 - (0.15 * biasFactor)
+                ];
+            } else if (technique === 'preprocessing') {
+                majorityValues = [
+                    0.35 + (0.1 * (1 - biasFactor)),
+                    0.65 + (0.1 * (1 - biasFactor)),
+                    0.25 + (0.05 * (1 - biasFactor)),
+                    0.85 - (0.05 * biasFactor)
+                ];
+                
+                minorityValues = [
+                    0.25 + (0.1 * (1 - biasFactor)),
+                    0.45 + (0.15 * (1 - biasFactor)),
+                    0.40 + (0.05 * (1 - biasFactor)),
+                    0.70 + (0.05 * (1 - biasFactor))
+                ];
+            } else if (technique === 'inprocessing') {
+                majorityValues = [
+                    0.30 + (0.15 * (1 - biasFactor)),
+                    0.60 + (0.1 * (1 - biasFactor)),
+                    0.30 + (0.05 * (1 - biasFactor)),
+                    0.80 + (0.05 * (1 - biasFactor))
+                ];
+                
+                minorityValues = [
+                    0.30 + (0.15 * (1 - biasFactor)),
+                    0.50 + (0.15 * (1 - biasFactor)),
+                    0.40 + (0.05 * (1 - biasFactor)),
+                    0.75 + (0.05 * (1 - biasFactor))
+                ];
+            } else if (technique === 'postprocessing') {
+                // Post-traitement est particulièrement bon pour la métrique cible
+                const metricIndex = ['demographic', 'opportunity', 'equalized', 'predictive'].indexOf(metric);
+                
+                majorityValues = [
+                    0.35 + (0.1 * (1 - biasFactor)),
+                    0.65 + (0.1 * (1 - biasFactor)),
+                    0.25 + (0.05 * (1 - biasFactor)),
+                    0.85 - (0.05 * biasFactor)
+                ];
+                
+                minorityValues = [
+                    0.25 + (0.1 * (1 - biasFactor)),
+                    0.45 + (0.15 * (1 - biasFactor)),
+                    0.40 + (0.05 * (1 - biasFactor)),
+                    0.70 + (0.05 * (1 - biasFactor))
+                ];
+                
+                // Améliorer spécifiquement la métrique cible
+                if (metricIndex >= 0) {
+                    const improvement = 0.15 * (1 - biasFactor);
+                    majorityValues[metricIndex] -= improvement / 2;
+                    minorityValues[metricIndex] += improvement;
+                }
+            } else { // Hybride
+                majorityValues = [
+                    0.30 + (0.05 * (1 - biasFactor)),
+                    0.60 + (0.05 * (1 - biasFactor)),
+                    0.35 + (0.05 * (1 - biasFactor)),
+                    0.80 + (0.05 * (1 - biasFactor))
+                ];
+                
+                minorityValues = [
+                    0.30 + (0.05 * (1 - biasFactor)),
+                    0.55 + (0.1 * (1 - biasFactor)),
+                    0.40 + (0.05 * (1 - biasFactor)),
+                    0.75 + (0.05 * (1 - biasFactor))
+                ];
+            }
+            
+            // Mettre à jour les données du graphique
+            simulationChart.data.datasets[0].data = majorityValues;
+            simulationChart.data.datasets[1].data = minorityValues;
+            
+            // Mettre à jour le titre
+            const techniqueNames = {
+                'none': 'Aucune Correction',
+                'preprocessing': 'Pré-traitement',
+                'inprocessing': 'Modification du Modèle',
+                'postprocessing': 'Post-traitement',
+                'hybrid': 'Approche Hybride'
+            };
+            
+            simulationChart.options.plugins.title.text = `Métriques par Groupe (${techniqueNames[technique]})`;
+            
+            // Mettre en évidence la métrique cible
+            simulationChart.data.datasets.forEach(dataset => {
+                dataset.backgroundColor = dataset.backgroundColor.map((color, i) => {
+                    return i === ['demographic', 'opportunity', 'equalized', 'predictive'].indexOf(metric) ? 
+                        color.replace('0.7', '1') : color.replace('0.7', '0.4');
+                });
+            });
+            
+            simulationChart.update();
+        }
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dessiner tous les diagrammes
+            drawPreprocessingDiagram();
+            drawInprocessingDiagram();
+            drawPostprocessingDiagram();
+            drawHybridDiagram();
+            
+            drawDemographicParityDiagram();
+            drawEqualOpportunityDiagram();
+            drawEqualizedOddsDiagram();
+            drawPredictiveParityDiagram();
+            
+            // Initialiser le graphique de simulation
+            initSimulationChart();
+            
+            // Gestion du bouton de simulation
+            document.getElementById('run-simulation').addEventListener('click', function() {
+                const technique = document.getElementById('simulation-technique').value;
+                const metric = document.getElementById('simulation-metric').value;
+                const biasLevel = document.getElementById('bias-level').value;
+                
+                updateSimulationChart(technique, metric, biasLevel);
+                
+                // Animation de feedback
+                const button = this;
+                button.innerHTML = '<i class="fas fa-check mr-2"></i> Simulation Terminée';
+                button.classList.remove('gradient-bg');
+                button.classList.add('bg-green-500');
+                
+                setTimeout(() => {
+                    button.innerHTML = '<i class="fas fa-play mr-2"></i> Lancer la Simulation';
+                    button.classList.remove('bg-green-500');
+                    button.classList.add('gradient-bg');
+                }, 2000);
+            });
+        });
+    </script>
+</body>
+</html>
