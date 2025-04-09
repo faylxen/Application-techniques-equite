@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Techniques d'Équité Algorithmique</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .tab-active {
+            border-bottom: 3px solid #000DFF;
+            font-weight: 600;
+            color: #000DFF;
+        }
+        .tech-card {
+            border-left: 4px solid;
+            transition: all 0.3s;
+        }
+        .example-box {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            border: 1px dashed #ccc;
+        }
+        .example-title {
+            font-weight: 600;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .highlight {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 13, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 13, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 13, 255, 0); }
+        }
+        .simple-diagram {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin: 15px 0;
+            padding: 10px;
+            background-color: rgba(241, 245, 249, 0.6);
+            border-radius: 8px;
+        }
+        .diagram-item {
+            text-align: center;
+            padding: 5px;
+        }
+        .diagram-arrow {
+            font-size: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <header class="gradient-bg text-white shadow-lg">
+        <div class="container mx-auto px-4 py-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-6 md:mb-0">
+                    <h1 class="text-3xl md:text-4xl font-bold mb-2">Techniques d'Équité Algorithmique</h1>
+                    <p class="text-lg opacity-90">Méthodes pour réduire les biais dans les modèles d'IA</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Approches pour l'Équité</h2>
+                <p class="text-gray-600 mb-6">
+                    Découvrez les différentes techniques utilisées pour améliorer l'équité des modèles d'apprentissage automatique,
+                    avec des exemples concrets pour chaque méthode.
+                </p>
+                
+                <div class="flex border-b mb-6 overflow-x-auto">
+                    <button id="tech-tab" class="px-4 py-2 mr-2 tab-active">Techniques</button>
+                    <button id="metrics-tab" class="px-4 py-2 mr-2">Métriques</button>
+                </div>
+                
+                <!-- Section Techniques -->
+                <div id="techniques-section">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <!-- Carte Repondération -->
+                        <div class="tech-card bg-blue-50 border-blue-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-blue-800 text-lg mb-2">
+                                <i class="fas fa-balance-scale mr-2"></i>1. Repondération (Reweighing)
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Ajuste les poids des échantillons pour équilibrer la représentation des groupes.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>Exemple concret
+                                </div>
+                                <p class="text-sm text-gray-700">
+                                    Dans un dataset de recrutement avec 80% d'hommes et 20% de femmes, on attribue un poids de 0.625 aux hommes (1/80%) et 2.5 aux femmes (1/20%) pour équilibrer l'influence pendant l'entraînement.
+                                </p>
+                                
+                                <div class="simple-diagram mt-3">
+                                    <div class="diagram-item">
+                                        <div class="font-bold">Avant</div>
+                                        <div>Hommes: 80%</div>
+                                        <div>Femmes: 20%</div>
+                                    </div>
+                                    <div class="diagram-arrow">→</div>
+                                    <div class="diagram-item">
+                                        <div class="font-bold">Après</div>
+                                        <div>Poids H: 0.625</div>
+                                        <div>Poids F: 2.5</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex mb-2">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600"><i class="fas fa-check-circle mr-1"></i>Avantages</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Simple à implémenter</li>
+                                            <li>Préserve les données originales</li>
+                                        </ul>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-blue-600"><i class="fas fa-bullseye mr-1"></i>Cas d'usage</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Déséquilibres évidents</li>
+                                            <li>Première approche</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Carte Disparate Impact Remover -->
+                        <div class="tech-card bg-purple-50 border-purple-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-purple-800 text-lg mb-2">
+                                <i class="fas fa-exchange-alt mr-2"></i>2. Disparate Impact Remover
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Transforme les features pour réduire leur corrélation avec l'attribut sensible.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>Exemple concret
+                                </div>
+                                <p class="text-sm text-gray-700">
+                                    Pour un modèle de crédit, si le revenu est corrélé au genre, on modifie les valeurs de revenu pour que leur distribution soit similaire entre hommes et femmes, tout en préservant l'ordre global.
+                                </p>
+                                
+                                <div class="simple-diagram mt-3">
+                                    <div class="diagram-item">
+                                        <div class="font-bold">Avant</div>
+                                        <div>Revenu moyen:</div>
+                                        <div>H: 50k€</div>
+                                        <div>F: 35k€</div>
+                                    </div>
+                                    <div class="diagram-arrow">→</div>
+                                    <div class="diagram-item">
+                                        <div class="font-bold">Après</div>
+                                        <div>Revenu ajusté:</div>
+                                        <div>H: 45k€</div>
+                                        <div>F: 40k€</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex mb-2">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600"><i class="fas fa-check-circle mr-1"></i>Avantages</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Corrige les biais systémiques</li>
+                                            <li>Préserve l'utilité des données</li>
+                                        </ul>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-blue-600"><i class="fas fa-bullseye mr-1"></i>Cas d'usage</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Corrélations indésirables</li>
+                                            <li>Données sensibles</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <!-- Carte Ajustement de seuil -->
+                        <div class="tech-card bg-green-50 border-green-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-green-800 text-lg mb-2">
+                                <i class="fas fa-sliders-h mr-2"></i>3. Ajustement de seuil
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Applique des seuils différents par groupe pour équilibrer les résultats.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>Exemple concret
+                                </div>
+                                <p class="text-sm text-gray-700">
+                                    Pour un modèle de prêt bancaire qui surestime le risque des minorités, on baisse le seuil de décision pour elles (ex: 0.4 au lieu de 0.5) et on augmente légèrement pour le groupe majoritaire (0.55).
+                                </p>
+                                
+                                <div class="simple-diagram mt-3">
+                                    <div class="diagram-item">
+                                        <div class="font-bold">Seuils</div>
+                                        <div>Majorité: 0.55</div>
+                                        <div>Minorité: 0.4</div>
+                                    </div>
+                                    <div class="diagram-arrow">→</div>
+                                    <div class="diagram-item">
+                                        <div class="font-bold">Résultat</div>
+                                        <div>Taux acceptation:</div>
+                                        <div>Équilibré</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex mb-2">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600"><i class="fas fa-check-circle mr-1"></i>Avantages</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Aucun réentraînement</li>
+                                            <li>Contrôle précis</li>
+                                        </ul>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-blue-600"><i class="fas fa-bullseye mr-1"></i>Cas d'usage</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Modèles déjà déployés</li>
+                                            <li>Corrections rapides</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Carte Débiaisage adversarial -->
+                        <div class="tech-card bg-yellow-50 border-yellow-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-yellow-800 text-lg mb-2">
+                                <i class="fas fa-robot mr-2"></i>4. Débiaisage adversarial
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Utilise un modèle antagoniste pour supprimer les biais pendant l'entraînement.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-lightbulb mr-2 text-yellow-500"></i>Exemple concret
+                                </div>
+                                <p class="text-sm text-gray-700">
+                                    Pour un système de CV scanning, on entraîne simultanément :
+                                    1) Un modèle principal qui prédit la compétence
+                                    2) Un adversaire qui essaie de deviner le genre à partir des prédictions
+                                    Le modèle principal apprend à faire des prédictions indiscernables par l'adversaire.
+                                </p>
+                                
+                                <div class="simple-diagram mt-3">
+                                    <div class="diagram-item">
+                                        <div>Modèle Principal</div>
+                                        <small>(Compétence)</small>
+                                    </div>
+                                    <div class="diagram-arrow">⇄</div>
+                                    <div class="diagram-item">
+                                        <div>Adversaire</div>
+                                        <small>(Genre)</small>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex mb-2">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600"><i class="fas fa-check-circle mr-1"></i>Avantages</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Détecte les biais subtils</li>
+                                            <li>Approche sophistiquée</li>
+                                        </ul>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-blue-600"><i class="fas fa-bullseye mr-1"></i>Cas d'usage</span>
+                                        <ul class="list-disc pl-5 text-gray-600">
+                                            <li>Biais complexes</li>
+                                            <li>Ressources disponibles</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Section Métriques (maintenant fonctionnelle) -->
+                <div id="metrics-section" class="hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div class="tech-card bg-red-50 border-red-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-red-800 text-lg mb-2">
+                                <i class="fas fa-equals mr-2"></i>Parité Démographique
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Les prédictions positives sont également réparties entre les groupes.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-calculator mr-2 text-blue-500"></i>Calcul
+                                </div>
+                                <p class="text-sm font-mono bg-gray-100 p-2 rounded">
+                                    P(Ŷ=1|A=a) = P(Ŷ=1|A=b)
+                                </p>
+                                <p class="text-sm mt-2 text-gray-700">
+                                    Ex: Taux d'acceptation de 30% pour les hommes et 30% pour les femmes.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600">Quand l'utiliser</span>
+                                        <p class="text-gray-600">Quand l'égalité des résultats est cruciale</p>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-red-600">Limites</span>
+                                        <p class="text-gray-600">Peut masquer des différences de performance réelle</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card bg-indigo-50 border-indigo-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-indigo-800 text-lg mb-2">
+                                <i class="fas fa-bullseye mr-2"></i>Égalité des Chances
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Les taux de vrais positifs sont égaux entre les groupes.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-calculator mr-2 text-blue-500"></i>Calcul
+                                </div>
+                                <p class="text-sm font-mono bg-gray-100 p-2 rounded">
+                                    P(Ŷ=1|A=a,Y=1) = P(Ŷ=1|A=b,Y=1)
+                                </p>
+                                <p class="text-sm mt-2 text-gray-700">
+                                    Ex: 80% des candidats qualifiés sont repérés, quel que soit leur groupe.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600">Quand l'utiliser</span>
+                                        <p class="text-gray-600">Quand la détection des "bons" cas est importante</p>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-red-600">Limites</span>
+                                        <p class="text-gray-600">Nécessite des labels vérité terrain fiables</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="tech-card bg-pink-50 border-pink-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-pink-800 text-lg mb-2">
+                                <i class="fas fa-exchange-alt mr-2"></i>Égalité des Taux d'Erreurs
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                Les taux de vrais positifs et faux positifs sont égaux entre les groupes.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-calculator mr-2 text-blue-500"></i>Calcul
+                                </div>
+                                <p class="text-sm font-mono bg-gray-100 p-2 rounded">
+                                    P(Ŷ=1|A=a,Y=y) = P(Ŷ=1|A=b,Y=y) pour y ∈ {0,1}
+                                </p>
+                                <p class="text-sm mt-2 text-gray-700">
+                                    Ex: Mêmes taux d'erreurs pour tous les groupes démographiques.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600">Quand l'utiliser</span>
+                                        <p class="text-gray-600">Quand les deux types d'erreurs sont importants</p>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-red-600">Limites</span>
+                                        <p class="text-gray-600">Difficile à satisfaire complètement</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="tech-card bg-teal-50 border-teal-500 p-4 rounded-lg">
+                            <h3 class="font-bold text-teal-800 text-lg mb-2">
+                                <i class="fas fa-percentage mr-2"></i>Équilibre des Taux de Précision
+                            </h3>
+                            <p class="text-gray-700 mb-3">
+                                La précision est égale entre les groupes pour les prédictions positives.
+                            </p>
+                            
+                            <div class="example-box">
+                                <div class="example-title">
+                                    <i class="fas fa-calculator mr-2 text-blue-500"></i>Calcul
+                                </div>
+                                <p class="text-sm font-mono bg-gray-100 p-2 rounded">
+                                    P(Y=1|A=a,Ŷ=1) = P(Y=1|A=b,Ŷ=1)
+                                </p>
+                                <p class="text-sm mt-2 text-gray-700">
+                                    Ex: Parmi les candidats acceptés, 70% sont vraiment qualifiés dans chaque groupe.
+                                </p>
+                            </div>
+                            
+                            <div class="mt-3 text-sm">
+                                <div class="flex">
+                                    <div class="w-1/2 pr-2">
+                                        <span class="font-semibold text-green-600">Quand l'utiliser</span>
+                                        <p class="text-gray-600">Quand la qualité des prédictions positives compte</p>
+                                    </div>
+                                    <div class="w-1/2 pl-2">
+                                        <span class="font-semibold text-red-600">Limites</span>
+                                        <p class="text-gray-600">Peut créer d'autres disparités</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="mb-12">
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Comment choisir sa technique ?</h2>
+                
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Situation</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Technique recommandée</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Raison</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Déséquilibre évident dans les données</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Repondération</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Corrige simplement les déséquilibres de représentation</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Corrélations indésirables avec l'attribut sensible</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Disparate Impact Remover</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Supprime directement ces corrélations</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Modèle déjà entraîné avec biais</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Ajustement de seuil</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Permet des corrections sans réentraînement</td>
+                            </tr>
+                            <tr>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Biais complexes et subtils</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">Débiaisage adversarial</td>
+                                <td class="px-6 py-4 text-sm text-gray-500">Détecte et corrige les biais non évidents</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="text-center text-gray-400">
+                <p>© 2023 Techniques d'Équité Algorithmique. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Gestion des onglets - maintenant fonctionnelle
+        document.getElementById('tech-tab').addEventListener('click', function() {
+            document.getElementById('techniques-section').classList.remove('hidden');
+            document.getElementById('metrics-section').classList.add('hidden');
+            this.classList.add('tab-active');
+            document.getElementById('metrics-tab').classList.remove('tab-active');
+        });
+        
+        document.getElementById('metrics-tab').addEventListener('click', function() {
+            document.getElementById('metrics-section').classList.remove('hidden');
+            document.getElementById('techniques-section').classList.add('hidden');
+            this.classList.add('tab-active');
+            document.getElementById('tech-tab').classList.remove('tab-active');
+        });
+
+        // Animation pour attirer l'attention sur les exemples
+        document.addEventListener('DOMContentLoaded', function() {
+            const examples = document.querySelectorAll('.example-box');
+            examples.forEach((example, index) => {
+                setTimeout(() => {
+                    example.classList.add('highlight');
+                    setTimeout(() => example.classList.remove('highlight'), 2000);
+                }, index * 300);
+            });
+        });
+    </script>
+</body>
+</html>

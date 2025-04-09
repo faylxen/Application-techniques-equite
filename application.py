@@ -18,6 +18,12 @@ import tempfile
 import os
 import io
 import traceback
+import math
+from scipy.stats import chi2_contingency
+from scipy import stats
+import streamlit.components.v1 as components
+
+plt.style.use('seaborn-v0_8-whitegrid')
 
 # Importer les bibliothèques fairlearn si elles sont disponibles
 try:
@@ -461,10 +467,50 @@ def preprocess_data_robust(df, feature_cols, target_col, sensitive_col):
     
     return X_preprocessed, y, sensitive_attr, encoders, preprocessor
 
+def calculate_cramer_v(x, y):
+    """Calcule le V de Cramer entre deux variables catégorielles"""
+    confusion_matrix = pd.crosstab(x, y)
+    chi2 = chi2_contingency(confusion_matrix)[0]
+    n = confusion_matrix.sum().sum()
+    min_dim = min(confusion_matrix.shape) - 1
+    return np.sqrt(chi2 / (n * min_dim))
+
 # Interface utilisateur Streamlit
 def main():
     st.title("📊 Analyse d'Équité Algorithmique")
     st.markdown("*Un outil pour détecter et atténuer les biais dans les modèles prédictifs*")
+    
+    # Ajout du bouton d'explication avec état
+    if 'show_explanation' not in st.session_state:
+        st.session_state.show_explanation = False
+    
+    if st.button("ℹ️ Explication des techniques d'équité"):
+        st.session_state.show_explanation = not st.session_state.show_explanation
+    
+    if st.session_state.show_explanation:
+        try:
+            with open('fichier.html', 'r', encoding='utf-8') as file:
+                html_content = file.read()
+                # Ajout de styles CSS pour le plein écran
+                fullscreen_style = """
+                <style>
+                .stApp {
+                    max-width: 100%;
+                    padding: 0;
+                }
+                .main .block-container {
+                    max-width: 100%;
+                    padding: 0;
+                }
+                </style>
+                """
+                st.markdown(fullscreen_style, unsafe_allow_html=True)
+                # Affichage du contenu HTML en plein écran
+                components.html(html_content, height=1000, scrolling=True, width=None)
+        except FileNotFoundError:
+            st.error("Le fichier d'explication n'a pas été trouvé. Veuillez vous assurer que le fichier 'fichier.html' est présent dans le même répertoire que l'application.")
+        except Exception as e:
+            st.error(f"Une erreur s'est produite lors du chargement du fichier d'explication : {str(e)}")
     
     # Section d'introduction
     st.header("Introduction à l'Équité Algorithmique")
@@ -528,9 +574,20 @@ def main():
             # Chargement des données
             df = pd.read_csv(uploaded_file)
             
-            # Afficher l'aperçu du dataset
+            # Affichage des données brutes
             st.subheader("Aperçu du dataset")
             st.dataframe(df.head())
+            
+            # Visualisation des distributions
+            st.subheader("Distributions des variables")
+            
+            # Conversion des types de données
+            df = df.astype(str).apply(lambda x: pd.to_numeric(x, errors='ignore'))
+            
+            # Identification des colonnes numériques et catégorielles
+            numeric_cols = df.select_dtypes(include=['int64', 'float64']).columns
+            categorical_cols = df.select_dtypes(include=['object']).columns
+            
             
             # Configuration de la préparation des données
             st.subheader("Préparation des données")
@@ -578,21 +635,247 @@ def main():
                         feature_cols.remove(sensitive_col)
                         st.warning(f"'{sensitive_col}' a été retiré des caractéristiques car c'est l'attribut sensible.")
                 
-                # Vérification que les colonnes sélectionnées sont valides
-                if not feature_cols:
-                    st.error("Veuillez sélectionner au moins une caractéristique.")
-                    return
+            # Visualisation des distributions pour les colonnes sélectionnées
+            if feature_cols and target_col and sensitive_col:
+                st.subheader("Analyse des variables sélectionnées")
                 
-                if target_col in feature_cols:
-                    feature_cols.remove(target_col)
-                    st.warning(f"'{target_col}' a été retiré des caractéristiques car c'est la variable cible.")
-                    
-                if sensitive_col in feature_cols:
-                    feature_cols.remove(sensitive_col)
-                    st.warning(f"'{sensitive_col}' a été retiré des caractéristiques car c'est l'attribut sensible.")
+                # Conversion des types de données pour les colonnes sélectionnées
+                selected_cols = feature_cols + [target_col, sensitive_col]
+                df_selected = df[selected_cols].copy()
+                df_selected = df_selected.astype(str).apply(lambda x: pd.to_numeric(x, errors='ignore'))
+                
+                # Identification des colonnes numériques et catégorielles parmi les colonnes sélectionnées
+                numeric_cols = df_selected.select_dtypes(include=['int64', 'float64']).columns
+                categorical_cols = df_selected.select_dtypes(include=['object']).columns
+                
+                # Affichage des distributions numériques
+                if len(numeric_cols) > 0:
+                    with st.expander("### Distributions des variables numériques", expanded=True):
+                        # Matrice de corrélation
+                        st.write("#### Matrice de corrélation")
+                        corr_matrix = df_selected[numeric_cols].corr()
+                        # Utiliser la même taille que les autres graphiques
+                        n = len(numeric_cols)
+                        cols = min(3, n)
+                        rows = math.ceil(n / cols)
+                        fig, ax = plt.subplots(figsize=(7 * cols, 5 * rows))
+                        sns.heatmap(corr_matrix, annot=True, cmap='Blues', center=0, ax=ax, 
+                                  annot_kws={"size": 8}, cbar_kws={"shrink": 0.8})
+                        plt.title('Matrice de corrélation des variables numériques', fontsize=10)
+                        st.pyplot(fig)
+                        
+                        # Distributions individuelles
+                        n = len(numeric_cols)
+                        cols = min(3, n)
+                        rows = math.ceil(n / cols)
+                        
+                        fig = plt.figure(figsize=(6 * cols, 4 * rows))
+                        for i, col in enumerate(numeric_cols, 1):
+                            plt.subplot(rows, cols, i)
+                            sns.histplot(df_selected[col], kde=True, bins=20, color='steelblue')
+                            plt.title(f'Distribution de {col}')
+                            plt.xticks(rotation=45)
+                        plt.tight_layout()
+                        st.pyplot(fig)
+
+                # Affichage des distributions catégorielles
+                if len(categorical_cols) > 0:
+                    with st.expander("### Distributions des variables catégorielles", expanded=True):
+                        # Matrice de V de Cramer
+                        st.write("#### Matrice de V de Cramer")
+                        cramer_matrix = pd.DataFrame(index=categorical_cols, columns=categorical_cols)
+                        for col1 in categorical_cols:
+                            for col2 in categorical_cols:
+                                cramer_matrix.loc[col1, col2] = calculate_cramer_v(df_selected[col1], df_selected[col2])
+                        
+                        # Utiliser la même taille que les autres graphiques
+                        n = len(categorical_cols)
+                        cols = min(3, n)
+                        rows = math.ceil(n / cols)
+                        fig, ax = plt.subplots(figsize=(7 * cols, 5 * rows))
+                        sns.heatmap(cramer_matrix.astype(float), annot=True, cmap='Blues', center=0, ax=ax,
+                                  annot_kws={"size": 8}, cbar_kws={"shrink": 0.8})
+                        plt.title('Matrice de V de Cramer des variables catégorielles', fontsize=10)
+                        st.pyplot(fig)
+                        
+                        # Distributions individuelles
+                        n = len(categorical_cols)
+                        cols = min(3, n)
+                        rows = math.ceil(n / cols)
+                        
+                        fig = plt.figure(figsize=(7 * cols, 5 * rows))
+                        for i, col in enumerate(categorical_cols, 1):
+                            plt.subplot(rows, cols, i)
+                            order = df_selected[col].value_counts().sort_values(ascending=False).index
+                            sns.countplot(data=df_selected, x=col, order=order, color='lightcoral')
+                            plt.title(f"Distribution de {col}")
+                            plt.ylabel("Nombre d'occurrences")
+                            plt.xticks(rotation=45, ha='right')
+                        plt.tight_layout()
+                        st.pyplot(fig)
+
+                    # Analyse détaillée des variables catégorielles
+                    with st.expander("### Analyse détaillée des variables catégorielles", expanded=True):
+                        colors = sns.color_palette('viridis', 2)
+
+                        def visualize_categorical_by_risk(df, column, target_col):
+                            """
+                            Crée des visualisations pour montrer la distribution de la variable cible
+                            pour chaque valeur d'un attribut catégoriel.
+                            """
+                            fig, axes = plt.subplots(1, 3, figsize=(24, 8))
+                            
+                            # Calculer les tableaux croisés et pourcentages
+                            cross_tab = pd.crosstab(df[column], df[target_col])
+                            percentage_table_by_attr = cross_tab.div(cross_tab.sum(axis=1), axis=0) * 100  # % par attribut
+                            percentage_table_by_target = cross_tab.div(cross_tab.sum(axis=0), axis=1) * 100  # % par variable cible
+
+                            # Premier graphique : Distribution en pourcentage par attribut
+                            percentage_table_by_attr.plot(
+                                kind='barh',
+                                stacked=True,
+                                color=colors,
+                                ax=axes[0]
+                            )
+                            axes[0].set_title(f'Distribution (%) de la variable cible\npour chaque valeur de {column}', fontsize=14)
+                            axes[0].set_xlabel('Pourcentage (%)', fontsize=12)
+                            axes[0].set_ylabel(column, fontsize=12)
+
+                            # Ajouter les étiquettes de pourcentage
+                            for container in axes[0].containers:
+                                labels = [f'{v:.1f}%' if v > 5 else '' for v in container.datavalues]
+                                axes[0].bar_label(container, labels=labels, label_type='center', color='white', fontweight='bold')
+
+                            # Deuxième graphique : Nombres absolus
+                            cross_tab.plot(
+                                kind='barh',
+                                ax=axes[1]
+                            )
+                            axes[1].set_title(f'Nombre d\'observations\npour {column}', fontsize=14)
+                            axes[1].set_xlabel('Nombre d\'observations', fontsize=12)
+                            axes[1].set_ylabel(column, fontsize=12)
+
+                            # Ajouter les étiquettes de nombres
+                            for container in axes[1].containers:
+                                axes[1].bar_label(container, fmt='%d', padding=3)
+
+                            # Troisième graphique : Distribution en pourcentage par variable cible
+                            percentage_table_by_target.plot(
+                                kind='barh',
+                                stacked=True,
+                                color=colors,
+                                ax=axes[2]
+                            )
+                            axes[2].set_title(f'Distribution (%) de {column}\npour chaque valeur de la variable cible', fontsize=14)
+                            axes[2].set_xlabel('Pourcentage (%)', fontsize=12)
+                            axes[2].set_ylabel(column, fontsize=12)
+
+                            # Ajouter les étiquettes de pourcentage
+                            for container in axes[2].containers:
+                                labels = [f'{v:.1f}%' if v > 5 else '' for v in container.datavalues]
+                                axes[2].bar_label(container, labels=labels, label_type='center', color='white', fontweight='bold')
+
+                            plt.tight_layout()
+                            return fig, cross_tab, percentage_table_by_attr, percentage_table_by_target
+
+                        # Analyser chaque variable catégorielle
+                        for col in categorical_cols:
+                            if col != target_col:  # Éviter d'analyser la variable cible avec elle-même
+                                st.write(f"#### Analyse de '{col}'")
+                                try:
+                                    fig, cross_tab, pct_by_attr, pct_by_target = visualize_categorical_by_risk(
+                                        df_selected, col, target_col
+                                    )
+                                    st.pyplot(fig)
+
+                                    # Test statistique
+                                    chi2, p_value = chi2_contingency(cross_tab)[:2]
+                                    st.write(f"Test du chi2 : p-value = {p_value:.4f}")
+                                    if p_value < 0.05:
+                                        st.warning(f"Il existe une dépendance significative entre '{col}' et la variable cible (p < 0.05)")
+                                    else:
+                                        st.success(f"Il n'y a pas de dépendance significative entre '{col}' et la variable cible (p >= 0.05)")
+
+                                except Exception as e:
+                                    st.error(f"Erreur lors de l'analyse de {col}: {str(e)}")
+                                    if debug_mode:
+                                        st.write("Trace complète de l'erreur:")
+                                        st.code(traceback.format_exc())
+
+                # Afficher les relations entre l'attribut sensible et la variable cible
+                with st.expander("### Relation entre l'attribut sensible et la variable cible", expanded=True):
+                    try:
+                        # Afficher les informations de débogage
+                        if debug_mode:
+                            st.write("Valeurs uniques dans l'attribut sensible:", df[sensitive_col].unique())
+                            st.write("Valeurs uniques dans la variable cible:", df[target_col].unique())
+                        
+                        # Vérifier si les colonnes sont catégorielles ou numériques
+                        is_sensitive_numeric = pd.to_numeric(df[sensitive_col], errors='coerce').notnull().all()
+                        is_target_numeric = pd.to_numeric(df[target_col], errors='coerce').notnull().all()
+                        
+                        # Convertir en catégories si nécessaire
+                        df_viz = df[[sensitive_col, target_col]].copy()
+                        if is_sensitive_numeric:
+                            df_viz[sensitive_col] = df_viz[sensitive_col].astype(str)
+                        if is_target_numeric:
+                            df_viz[target_col] = df_viz[target_col].astype(str)
+                        
+                        # Créer un tableau croisé avec des valeurs absolues et relatives
+                        cross_tab_abs = pd.crosstab(df_viz[sensitive_col], df_viz[target_col])
+                        cross_tab_rel = pd.crosstab(df_viz[sensitive_col], df_viz[target_col], normalize='index')
+                        
+                        # Afficher les tableaux
+                        st.write("#### Distribution en valeurs absolues")
+                        st.dataframe(cross_tab_abs)
+                        
+                        st.write("#### Distribution en pourcentages")
+                        st.dataframe(cross_tab_rel.round(3) * 100)
+                        
+                        # Créer deux visualisations
+                        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+                        
+                        # Graphique en barres empilées (proportions)
+                        cross_tab_rel.plot(kind='bar', stacked=True, ax=ax1)
+                        ax1.set_title(f"Distribution relative de {target_col}\npar {sensitive_col}")
+                        ax1.set_xlabel(sensitive_col)
+                        ax1.set_ylabel("Proportion")
+                        ax1.legend(title=target_col)
+                        plt.setp(ax1.get_xticklabels(), rotation=45, ha='right')
+                        
+                        # Graphique en barres groupées (valeurs absolues)
+                        cross_tab_abs.plot(kind='bar', ax=ax2)
+                        ax2.set_title(f"Distribution absolue de {target_col}\npar {sensitive_col}")
+                        ax2.set_xlabel(sensitive_col)
+                        ax2.set_ylabel("Nombre d'occurrences")
+                        ax2.legend(title=target_col)
+                        plt.setp(ax2.get_xticklabels(), rotation=45, ha='right')
+                        
+                        plt.tight_layout()
+                        st.pyplot(fig)
+                        
+                        # Afficher des statistiques supplémentaires
+                        st.write("#### Statistiques de dépendance")
+                        chi2, p_value = chi2_contingency(cross_tab_abs)[:2]
+                        st.write(f"Test du chi2 : p-value = {p_value:.4f}")
+                        if p_value < 0.05:
+                            st.warning("Il existe une dépendance significative entre l'attribut sensible et la variable cible (p < 0.05)")
+                        else:
+                            st.success("Il n'y a pas de dépendance significative entre l'attribut sensible et la variable cible (p >= 0.05)")
+                        
+                    except Exception as e:
+                        st.error(f"Erreur lors de la création des visualisations de relation : {str(e)}")
+                        if debug_mode:
+                            st.write("Trace complète de l'erreur:")
+                            st.code(traceback.format_exc())
+
+            # Vérification que les colonnes sélectionnées sont valides
+            if not feature_cols:
+                st.error("Veuillez sélectionner au moins une caractéristique.")
+                return
             
             # Préparation des données
-            if st.button("Analyser et appliquer les techniques d'équité"):
+            if st.button("### Analyser et appliquer les techniques d'équité"):
                 with st.spinner("Traitement en cours..."):
                     # Mode débogage - Analyse du dataframe
                     if debug_mode:
@@ -694,10 +977,30 @@ def main():
                         }
                         
                         # Métriques d'équité du modèle de base
-                        base_dp, base_dp_disparity = demographic_parity(base_preds, sens_test, encoders.get('sensitive'))
-                        base_eo, base_tpr_disparity, base_fpr_disparity = equalized_odds(y_test, base_preds, sens_test, encoders.get('sensitive'))
-                        base_eop, base_eop_disparity = equal_opportunity(y_test, base_preds, sens_test, encoders.get('sensitive'))
-                        base_pp, base_pp_disparity = predictive_parity(y_test, base_preds, sens_test, encoders.get('sensitive'))
+                        if 'sensitive' in encoders:
+                            sensitive_encoder = encoders['sensitive']
+                            # Décodage des valeurs pour l'affichage
+                            unique_groups = np.unique(sens_test)
+                            group_names = sensitive_encoder.inverse_transform(unique_groups)
+                            group_mapping = dict(zip(unique_groups, group_names))
+                        else:
+                            sensitive_encoder = None
+                            group_mapping = None
+
+                        base_dp, base_dp_disparity = demographic_parity(base_preds, sens_test, sensitive_encoder)
+                        base_eo, base_tpr_disparity, base_fpr_disparity = equalized_odds(y_test, base_preds, sens_test, sensitive_encoder)
+                        base_eop, base_eop_disparity = equal_opportunity(y_test, base_preds, sens_test, sensitive_encoder)
+                        base_pp, base_pp_disparity = predictive_parity(y_test, base_preds, sens_test, sensitive_encoder)
+
+                        # Afficher les valeurs pour le débogage si nécessaire
+                        if debug_mode:
+                            st.write("### Informations de débogage sur les groupes")
+                            st.write("Valeurs uniques dans sens_test:", np.unique(sens_test))
+                            if 'sensitive' in encoders:
+                                st.write("Classes de l'encodeur:", encoders['sensitive'].classes_)
+                                st.write("Mapping des groupes:", group_mapping)
+                            st.write("Base DP résultats:", base_dp)
+                            st.write("Base EO résultats:", base_eo)
                         
                         base_fairness_metrics = {
                             "Disparité de parité démographique": base_dp_disparity,
@@ -776,10 +1079,10 @@ def main():
                             }
                             
                             # Métriques d'équité du modèle équitable
-                            fair_dp, fair_dp_disparity = demographic_parity(fair_preds, sens_test, encoders.get('sensitive'))
-                            fair_eo, fair_tpr_disparity, fair_fpr_disparity = equalized_odds(y_test, fair_preds, sens_test, encoders.get('sensitive'))
-                            fair_eop, fair_eop_disparity = equal_opportunity(y_test, fair_preds, sens_test, encoders.get('sensitive'))
-                            fair_pp, fair_pp_disparity = predictive_parity(y_test, fair_preds, sens_test, encoders.get('sensitive'))
+                            fair_dp, fair_dp_disparity = demographic_parity(fair_preds, sens_test, sensitive_encoder)
+                            fair_eo, fair_tpr_disparity, fair_fpr_disparity = equalized_odds(y_test, fair_preds, sens_test, sensitive_encoder)
+                            fair_eop, fair_eop_disparity = equal_opportunity(y_test, fair_preds, sens_test, sensitive_encoder)
+                            fair_pp, fair_pp_disparity = predictive_parity(y_test, fair_preds, sens_test, sensitive_encoder)
                             
                             fair_fairness_metrics = {
                                 "Disparité de parité démographique": fair_dp_disparity,
@@ -837,6 +1140,7 @@ def main():
                         ax.set_title('Parité Démographique')
                         ax.set_ylabel('Taux de prédictions positives')
                         ax.set_ylim(0, 1)
+                        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
                         
                         # Égalité des Taux d'Erreurs
                         ax = axes[0, 1]
@@ -851,7 +1155,7 @@ def main():
                         ax.bar(x + width/2, fpr_values, width, label='FPR', color='plum')
                         ax.set_title('Égalité des Taux d\'Erreurs')
                         ax.set_xticks(x)
-                        ax.set_xticklabels(groups)
+                        ax.set_xticklabels(groups, rotation=45, ha='right')
                         ax.set_ylabel('Taux')
                         ax.set_ylim(0, 1)
                         ax.legend()
@@ -864,6 +1168,7 @@ def main():
                         ax.set_title('Égalité des Chances')
                         ax.set_ylabel('Taux de vrais positifs')
                         ax.set_ylim(0, 1)
+                        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
                         
                         # Équilibre des Taux de Précision
                         ax = axes[1, 1]
@@ -873,6 +1178,7 @@ def main():
                         ax.set_title('Équilibre des Taux de Précision')
                         ax.set_ylabel('Précision parmi les prédictions positives')
                         ax.set_ylim(0, 1)
+                        plt.setp(ax.get_xticklabels(), rotation=45, ha='right')
                         
                         plt.tight_layout()
                         st.pyplot(fig)
